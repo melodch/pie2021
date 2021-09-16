@@ -1,0 +1,155 @@
+// constants won't change. They're used here to set pin numbers:
+const int buttonPin = 8;     // the number of the pushbutton pin
+const int ledPin1 =  11;     // the number of the LED pin
+const int ledPin2 =  12;     // the number of the LED pin
+const int ledPin3 =  13;     // the number of the LED pin
+const int potPin = A0;
+const uint16_t blink_interval = 100;
+const uint16_t bounce_interval = 500;
+const uint16_t quick_blink_interval = 50;
+
+// variables will change:
+int buttonState = 1;         // variable for reading the pushbutton status
+int ledState = 1;            // variable for changing the bike light mode
+int potValue = 0;            // potentiometer sensor reading
+bool buttonPress = false;    // if the button is currently pressed or not
+bool buttonWasLow = true;    // if the button was previously pressed
+uint16_t blink_time;         // current time
+uint16_t bounce_time;        // current time
+int bounce_state = 1;        // integer representing which LED is flashing
+uint16_t pot_interval;       // amount of time between blinks when the pot is an input
+
+void setup() {
+  Serial.begin(9600);
+  // initialize the LED pin as an output:
+  pinMode(ledPin1, OUTPUT);
+  pinMode(ledPin2, OUTPUT);
+  pinMode(ledPin3, OUTPUT);0
+  // initialize the pushbutton pin as an input:
+  pinMode(buttonPin, INPUT);
+  // initialize blink and bounce time as time
+  blink_time = millis();
+  bounce_time = millis();
+}
+
+// function to turn all the LEDs off
+void offMode() {
+  digitalWrite(ledPin1, LOW);    // turn the LED off by making the voltage LOW
+  digitalWrite(ledPin2, LOW);    // turn the LED off by making the voltage LOW
+  digitalWrite(ledPin3, LOW);    // turn the LED off by making the voltage LOW
+}
+
+// function to turn all the LED's on
+void onMode() {
+  digitalWrite(ledPin1, HIGH);    // turn the LED off by making the voltage HIGH
+  digitalWrite(ledPin2, HIGH);    // turn the LED off by making the voltage HIGH
+  digitalWrite(ledPin3, HIGH);    // turn the LED off by making the voltage HIGH
+}
+
+// function to blink the LEDs
+void blinkMode() {
+  uint16_t t;
+  t = millis();
+  if (t > blink_time + blink_interval){
+    digitalWrite(ledPin1, !digitalRead(ledPin1));
+    digitalWrite(ledPin2, !digitalRead(ledPin2));
+    digitalWrite(ledPin3, !digitalRead(ledPin3));
+    blink_time = t;
+  }
+}
+
+// function to quickly blink all the LEDs
+void quickBlinkMode() {
+  uint16_t t;
+  t = millis();
+  if (t > blink_time + quick_blink_interval)
+  {
+    digitalWrite(ledPin1, !digitalRead(ledPin1));
+    digitalWrite(ledPin2, !digitalRead(ledPin2));
+    digitalWrite(ledPin3, !digitalRead(ledPin3));
+    blink_time = t;
+  }
+}
+
+// function making the LEDs light up one at a time
+void bounceMode() {
+  uint16_t t;
+  t = millis();
+  if (t > bounce_time + bounce_interval)
+  {
+    bounce_state = bounce_state + 1;
+    if (bounce_state > 3)
+      bounce_state = 1;
+    bounce_time = t;
+  }
+  if (bounce_state == 1){
+    digitalWrite(ledPin1, HIGH);
+    digitalWrite(ledPin2, LOW);
+    digitalWrite(ledPin3, LOW);
+  }
+  if (bounce_state == 2){
+    digitalWrite(ledPin1, LOW);
+    digitalWrite(ledPin2, HIGH);
+    digitalWrite(ledPin3, LOW);
+  }
+  if (bounce_state == 3){
+    digitalWrite(ledPin1, LOW);
+    digitalWrite(ledPin2, LOW);
+    digitalWrite(ledPin3, HIGH);
+  }
+}
+
+// function to make the LEDs blink at a speed based on the pot
+void pot() { // min - max -> 0 - 623
+  float sensorValue = analogRead(potPin);
+  pot_interval = sensorValue + 200;
+  uint16_t t;
+  t = millis();
+  if (t > blink_time + pot_interval)
+  {
+    digitalWrite(ledPin1, !digitalRead(ledPin1));
+    digitalWrite(ledPin2, !digitalRead(ledPin2));
+    digitalWrite(ledPin3, !digitalRead(ledPin3));
+    blink_time = t;
+  }
+}
+
+void loop() {
+  // read the state of the pushbutton value:
+  buttonState = digitalRead(buttonPin);
+  // if the button is currently not pushed, say that button was low is true
+  if (buttonState == LOW)
+  buttonWasLow = true;
+  // check if the pushbutton is pressed and that it was previously not pushed
+  if (buttonState == HIGH && buttonWasLow) {
+    // change the state of the bike light
+    ledState = ledState + 1;
+    // if it goes through all the states, then go back to the first one
+    if (ledState > 6){
+      ledState = 1;
+    }
+    // set the button was low value to false
+    buttonWasLow = false;
+  }
+  // run the correct bike light mode based on the LED state
+  switch (ledState){
+    case 1:
+    offMode();
+    break;
+    case 2:
+    onMode();
+    break;
+    case 3:
+    blinkMode();
+    break;
+    case 4:
+    bounceMode();
+    break;
+    case 5: 
+    quickBlinkMode();
+    break;
+    case 6:
+    pot();
+    break;
+  }
+}
