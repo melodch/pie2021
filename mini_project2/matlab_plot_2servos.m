@@ -1,6 +1,5 @@
 clear all
 
-
 arduinoComPort = 'COM5';  % set serial port
 baudRate = 9600;   % set the baud rate
 
