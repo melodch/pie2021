@@ -42,6 +42,6 @@ while timeout < 5
 end
 
 plot(x_values,y_values, '.')
-title("3D Scanner Result");
+title("2D Sweep");
 xlabel("Pan angle (degree)");
 ylabel("Distance (cms)");
